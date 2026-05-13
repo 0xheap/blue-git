@@ -55,11 +55,12 @@ pub async fn chat_completion(
         .get(&provider)
         .ok_or_else(|| anyhow!("Provider config missing"))?;
 
+    // Omit `tool_choice`: OpenAI defaults to "auto" when tools are present, and some
+    // OpenRouter routes error if `tool_choice` is set but no provider supports it.
     let body = serde_json::json!({
         "model": model,
         "messages": messages,
         "tools": tools,
-        "tool_choice": "auto"
     });
 
     let mut req = client
@@ -80,7 +81,18 @@ pub async fn chat_completion(
     let text = resp.text().await.context("Failed reading provider body")?;
 
     if !status.is_success() {
-        return Err(anyhow!("Provider HTTP {}: {}", status, text));
+        let mut err = format!("Provider HTTP {}: {}", status, text);
+        if provider == ProviderKind::OpenRouter
+            && (text.contains("tool_choice") || text.contains("No endpoints found"))
+        {
+            err.push_str(
+                "\n\nOpenRouter: this model has no endpoint that supports **tool/function calling**, which bluegit requires. \
+Your API key is fine — pick a model that lists `tools` on OpenRouter, e.g. browse: \
+https://openrouter.ai/models?supported_parameters=tools\n\
+Example models: `anthropic/claude-sonnet-4.5`, `openai/gpt-4o`. Many `:free` models do not support tools.",
+            );
+        }
+        return Err(anyhow!("{}", err));
     }
 
     let parsed: ChatCompletionResponse =

@@ -53,7 +53,7 @@ async fn main() -> Result<()> {
         let _ = rl.add_history_entry(line.as_str());
 
         if line.starts_with('/') {
-            if !handle_slash(&line, &mut state, &mut agent)? {
+            if !handle_slash(&line, &mut state, &mut agent, &cfg)? {
                 break;
             }
             continue;
@@ -68,17 +68,29 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn handle_slash(cmd: &str, state: &mut AppState, agent: &mut Agent) -> Result<bool> {
+fn handle_slash(
+    cmd: &str,
+    state: &mut AppState,
+    agent: &mut Agent,
+    cfg: &AppConfig,
+) -> Result<bool> {
     let parts: Vec<&str> = cmd.split_whitespace().collect();
     match parts.first().copied().unwrap_or_default() {
         "/exit" => Ok(false),
         "/auth" => {
             let provider = parts.get(1).copied().unwrap_or_default();
             if let Some(p) = ProviderKind::parse(provider) {
-                state.active_provider = p;
-                println!("provider => {}", p.as_str());
+                if cfg.providers.contains_key(&p) {
+                    state.active_provider = p;
+                    println!("provider => {}", p.as_str());
+                } else {
+                    println!(
+                        "provider `{}` is not configured (missing API key in .env)",
+                        p.as_str()
+                    );
+                }
             } else {
-                println!("usage: /auth openrouter|inception");
+                println!("usage: /auth openrouter|inception|bigmodel|zhipu");
             }
             Ok(true)
         }

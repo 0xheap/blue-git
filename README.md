@@ -5,7 +5,7 @@
 ## Features
 
 - REPL with slash commands (`/auth`, `/model`, `/cd`, `/clear`, `/history`, `/tools`, `/exit`)
-- OpenRouter + Inception provider support using OpenAI-compatible chat completions with tool calling
+- OpenRouter + Inception + **智谱 BigModel** (OpenAI-compatible chat completions) with tool calling
 - Real agent loop with tool call execution until final assistant answer
 - Built-in safety checks for secrets, dangerous push patterns, and destructive shell commands
 
@@ -17,11 +17,23 @@
 cp .env.example .env
 ```
 
-2. Set your API keys in `.env`:
+2. Set API keys in `.env` (at least one provider):
 
-- `OPENROUTER_API_KEY`
-- `INCEPTION_API_KEY`
-- `DEFAULT_PROVIDER` (`openrouter` or `inception`)
+- `OPENROUTER_API_KEY` — optional if you use other providers
+- `INCEPTION_API_KEY` — optional
+- `BIGMODEL_API_KEY` or `ZHIPU_API_KEY` — [智谱 AI Open Platform](https://docs.bigmodel.cn/cn/api/introduction#curl) (Bearer `https://open.bigmodel.cn/api/paas/v4/chat/completions`)
+- `DEFAULT_PROVIDER` — `openrouter`, `inception`, `bigmodel`, or `zhipu` (must match a key you set)
+
+Optional BigModel tuning:
+
+- `BIGMODEL_USE_CODING_ENDPOINT=true` — use the [GLM Coding endpoint](https://docs.bigmodel.cn/cn/api/introduction) (`.../api/coding/paas/v4/chat/completions`) instead of general paas v4
+- `BIGMODEL_CHAT_COMPLETIONS_URL` — override the full chat-completions URL
+
+### OpenRouter: pick a model that supports tools
+
+`bluegit` always sends **function/tool definitions** to the API. On OpenRouter, if the model has no provider that supports tools, you get HTTP **404** with a message about `tool_choice` / endpoints — that is a **model routing** limitation, not a bad API key.
+
+Use a model that supports the `tools` parameter. Filter on OpenRouter: [models with `tools` support](https://openrouter.ai/models?supported_parameters=tools). Many free or reasoning-only models do **not** expose tool calling; use something like `anthropic/claude-sonnet-4.5` or `openai/gpt-4o`, or set `/model` accordingly after launch.
 
 3. Build:
 
