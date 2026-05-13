@@ -90,7 +90,7 @@ fn handle_slash(
                     );
                 }
             } else {
-                println!("usage: /auth openrouter|inception|bigmodel|zhipu");
+                println!("usage: /auth openrouter|inception|bigmodel|zhipu|mistral");
             }
             Ok(true)
         }

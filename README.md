@@ -5,7 +5,7 @@
 ## Features
 
 - REPL with slash commands (`/auth`, `/model`, `/cd`, `/clear`, `/history`, `/tools`, `/exit`)
-- OpenRouter + Inception + **智谱 BigModel** (OpenAI-compatible chat completions) with tool calling
+- OpenRouter + Inception + **智谱 BigModel** + **Mistral** ([chat completions API](https://docs.mistral.ai/api)) — OpenAI-compatible with tool calling
 - Real agent loop with tool call execution until final assistant answer
 - Built-in safety checks for secrets, dangerous push patterns, and destructive shell commands
 
@@ -22,12 +22,17 @@ cp .env.example .env
 - `OPENROUTER_API_KEY` — optional if you use other providers
 - `INCEPTION_API_KEY` — optional
 - `BIGMODEL_API_KEY` or `ZHIPU_API_KEY` — [智谱 AI Open Platform](https://docs.bigmodel.cn/cn/api/introduction#curl) (Bearer `https://open.bigmodel.cn/api/paas/v4/chat/completions`)
-- `DEFAULT_PROVIDER` — `openrouter`, `inception`, `bigmodel`, or `zhipu` (must match a key you set)
+- `MISTRAL_API_KEY` — [Mistral AI](https://docs.mistral.ai/api) (`https://api.mistral.ai/v1/chat/completions`)
+- `DEFAULT_PROVIDER` — `openrouter`, `inception`, `bigmodel`, `zhipu`, or `mistral` (must match a key you set)
 
 Optional BigModel tuning:
 
 - `BIGMODEL_USE_CODING_ENDPOINT=true` — use the [GLM Coding endpoint](https://docs.bigmodel.cn/cn/api/introduction) (`.../api/coding/paas/v4/chat/completions`) instead of general paas v4
 - `BIGMODEL_CHAT_COMPLETIONS_URL` — override the full chat-completions URL
+
+Optional Mistral:
+
+- `MISTRAL_CHAT_COMPLETIONS_URL` — override chat-completions URL (defaults to `https://api.mistral.ai/v1/chat/completions`)
 
 ### OpenRouter: pick a model that supports tools
 

@@ -10,6 +10,8 @@ pub enum ProviderKind {
     Inception,
     /// 智谱 AI Open Platform (BigModel), OpenAI-compatible chat completions.
     BigModel,
+    /// Mistral AI — OpenAI-compatible chat completions (tools supported).
+    Mistral,
 }
 
 impl ProviderKind {
@@ -18,6 +20,7 @@ impl ProviderKind {
             "openrouter" => Some(Self::OpenRouter),
             "inception" => Some(Self::Inception),
             "bigmodel" | "zhipu" => Some(Self::BigModel),
+            "mistral" => Some(Self::Mistral),
             _ => None,
         }
     }
@@ -27,6 +30,7 @@ impl ProviderKind {
             Self::OpenRouter => "openrouter",
             Self::Inception => "inception",
             Self::BigModel => "bigmodel",
+            Self::Mistral => "mistral",
         }
     }
 }
@@ -123,9 +127,25 @@ impl AppConfig {
             );
         }
 
+        if let Ok(k) = env::var("MISTRAL_API_KEY") {
+            if !k.trim().is_empty() {
+                let base_url = env::var("MISTRAL_CHAT_COMPLETIONS_URL").unwrap_or_else(|_| {
+                    "https://api.mistral.ai/v1/chat/completions".to_string()
+                });
+                providers.insert(
+                    ProviderKind::Mistral,
+                    ProviderConfig {
+                        api_key: k,
+                        base_url,
+                        default_model: "mistral-small-latest".to_string(),
+                    },
+                );
+            }
+        }
+
         if providers.is_empty() {
             return Err(anyhow!(
-                "No API keys configured. Set at least one of: OPENROUTER_API_KEY, INCEPTION_API_KEY, BIGMODEL_API_KEY (or ZHIPU_API_KEY)."
+                "No API keys configured. Set at least one of: OPENROUTER_API_KEY, INCEPTION_API_KEY, BIGMODEL_API_KEY (or ZHIPU_API_KEY), MISTRAL_API_KEY."
             ));
         }
 
@@ -163,6 +183,7 @@ fn pick_default_provider(providers: &HashMap<ProviderKind, ProviderConfig>) -> P
         ProviderKind::OpenRouter,
         ProviderKind::Inception,
         ProviderKind::BigModel,
+        ProviderKind::Mistral,
     ] {
         if providers.contains_key(&candidate) {
             return candidate;
